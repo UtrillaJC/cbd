@@ -1,5 +1,5 @@
 from __future__ import absolute_import, division, print_function, unicode_literals
-
+from sparqldata import data_examples, get_word_index
 import tensorflow as tf
 from tensorflow import keras
 
@@ -7,13 +7,21 @@ import numpy as np
 
 print(tf.__version__)
 
-imdb = keras.datasets.imdb
+#imdb = keras.datasets.imdb
+#(train_data, train_labels), (test_data, test_labels) = imdb.load_data(num_words=88589)
 
-(train_data, train_labels), (test_data, test_labels) = imdb.load_data(num_words=88589)
+
+examples = data_examples()
+n_examples = len(examples[0])
+print(n_examples)
+train_data = examples[0][:n_examples//2]
+train_labels = examples[1][:n_examples//2]
+test_data = examples[0][n_examples//2:]
+test_labels = examples[1][n_examples//2:]
 
 # A dictionary mapping words to an integer index
-word_index = imdb.get_word_index()
-
+#word_index = imdb.get_word_index()
+word_index = get_word_index()
 # The first indices are reserved
 word_index = {k: (v + 3) for k, v in word_index.items()}
 word_index["<PAD>"] = 0
@@ -47,7 +55,6 @@ def create_embedding_matrix(filepath, word_index, embedding_dim):
     return embedding_matrix
 
 
-
 # print(decode_review(train_data[0]))
 
 train_data = keras.preprocessing.sequence.pad_sequences(train_data,
@@ -62,7 +69,8 @@ test_data = keras.preprocessing.sequence.pad_sequences(test_data,
 
 # print(train_data[0])
 
-vocab_size = 88589
+vocab_size = len(word_index)+1
+
 
 model = keras.Sequential(
     [
@@ -75,16 +83,17 @@ model = keras.Sequential(
         keras.layers.GlobalAveragePooling1D(),
         keras.layers.Dense(6),
         keras.layers.Activation('relu'),
-        keras.layers.Dense(1),
-        keras.layers.Activation('sigmoid')
+        keras.layers.Dense(1), keras.layers.Activation('sigmoid')
     ]
 )
 """
+
 model.add(keras.layers.Embedding(vocab_size, 16))
 model.add(keras.layers.Flatten(input_shape=(256, 1)))
 #model.add(keras.layers.GlobalAveragePooling1D())
 model.add(keras.layers.Dense(16, activation=tf.nn.relu))
 model.add(keras.layers.Dense(1, activation=tf.nn.sigmoid))
+
 """
 model.summary()
 
@@ -92,17 +101,18 @@ model.compile(optimizer='adam',
               loss='binary_crossentropy',
               metrics=['acc'])
 
-x_val = train_data[:10000]
-partial_x_train = train_data[10000:]
+print("len: "+str(len(train_data)))
+x_val = train_data[:len(train_data)//2]
+partial_x_train = train_data[len(train_data)//2:]
 
-y_val = train_labels[:10000]
-print(y_val)
-partial_y_train = train_labels[10000:]
+y_val = train_labels[:len(train_labels)//2]
+
+partial_y_train = train_labels[len(train_labels)//2:]
 
 history = model.fit(partial_x_train,
                     partial_y_train,
-                    epochs=10,
-                    batch_size=512,
+                    epochs=100,
+                    batch_size=20,
                     validation_data=(x_val, y_val),
                     verbose=1)
 

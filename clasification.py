@@ -1,5 +1,5 @@
 from __future__ import absolute_import, division, print_function, unicode_literals
-from sparqldata import data_examples, get_word_index
+from source_data import SourceData
 import tensorflow as tf
 from tensorflow import keras
 
@@ -10,8 +10,8 @@ print(tf.__version__)
 #imdb = keras.datasets.imdb
 #(train_data, train_labels), (test_data, test_labels) = imdb.load_data(num_words=88589)
 
-
-examples = data_examples()
+source = SourceData()
+examples =source.data_examples()
 n_examples = len(examples[0])
 print(n_examples)
 train_data = examples[0][:n_examples//2]
@@ -21,7 +21,7 @@ test_labels = examples[1][n_examples//2:]
 
 # A dictionary mapping words to an integer index
 #word_index = imdb.get_word_index()
-word_index = get_word_index()
+word_index = source.get_word_index()
 # The first indices are reserved
 word_index = {k: (v + 3) for k, v in word_index.items()}
 word_index["<PAD>"] = 0
@@ -111,8 +111,8 @@ partial_y_train = train_labels[len(train_labels)//2:]
 
 history = model.fit(partial_x_train,
                     partial_y_train,
-                    epochs=100,
-                    batch_size=20,
+                    epochs=40,
+                    batch_size=206,
                     validation_data=(x_val, y_val),
                     verbose=1)
 
@@ -138,6 +138,18 @@ plt.plot(epochs, val_loss, 'b', label='Validation loss')
 plt.title('Training and validation loss')
 plt.xlabel('Epochs')
 plt.ylabel('Loss')
+plt.legend()
+
+plt.show()
+
+
+#plt.clf()   # clear figure
+
+plt.plot(epochs, acc, 'bo', label='Training acc')
+plt.plot(epochs, val_acc, 'b', label='Validation acc')
+plt.title('Training and validation accuracy')
+plt.xlabel('Epochs')
+plt.ylabel('Accuracy')
 plt.legend()
 
 plt.show()

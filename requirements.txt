@@ -2,3 +2,4 @@ tf_nightly
 numpy
 matplotlib
 SPARQLWrapper ==1.8.4
+h5py

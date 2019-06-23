@@ -4,6 +4,7 @@ import tensorflow as tf
 from tensorflow import keras
 import matplotlib.pyplot as plt
 import numpy as np
+import pickle
 
 print(tf.__version__)
 # Preparing data
@@ -49,19 +50,19 @@ def create_embedding_matrix(filepath, word_index, embedding_dim):
 train_data = keras.preprocessing.sequence.pad_sequences(train_data,
                                                         value=word_index["<PAD>"],
                                                         padding='post',
-                                                        maxlen=512)
+                                                        maxlen=256)
 
 test_data = keras.preprocessing.sequence.pad_sequences(test_data,
                                                        value=word_index["<PAD>"],
                                                        padding='post',
-                                                       maxlen=512)
+                                                       maxlen=256)
 
 vocab_size = len(word_index)+1
 
 # Here, we are declaring neural network structure.
 model = keras.Sequential(
     [
-        keras.layers.Embedding(input_dim=vocab_size, output_dim=50, weights=[create_embedding_matrix('glove.6B.50d.txt', word_index, 50)], input_length=512, trainable=True),
+        keras.layers.Embedding(input_dim=vocab_size, output_dim=50, weights=[create_embedding_matrix('glove.6B.50d.txt', word_index, 50)], input_length=256, trainable=True),
         keras.layers.Conv1D(50, 6, activation='relu'),
         keras.layers.GlobalAveragePooling1D(),
         keras.layers.Dense(6),
@@ -96,7 +97,7 @@ partial_y_train = train_labels[len(train_labels)//2:]
 # Training our model with the data:
 history = model.fit(partial_x_train,
                     partial_y_train,
-                    epochs=20,
+                    epochs=125,
                     batch_size=200,
                     validation_data=(x_val, y_val),
                     verbose=1)
@@ -137,3 +138,10 @@ plt.ylabel('Accuracy')
 plt.legend()
 
 plt.show()
+
+# Saving the model
+model.save("model.h5")
+# Saving the word index
+with open('word_index.pkl', 'wb') as f:
+    pickle.dump(word_index, f, pickle.HIGHEST_PROTOCOL)
+print("Saved model to disk")

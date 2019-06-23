@@ -2,6 +2,8 @@ from SPARQLWrapper import SPARQLWrapper, JSON
 import random
 import sys
 
+# Our SPARQL queries:
+
 animalQuery = """
     PREFIX dbr: <http://dbpedia.org/resource/>
     PREFIX dbo: <http://dbpedia.org/ontology/>
@@ -44,7 +46,7 @@ LIMIT 15000
 
 
 class Query:
-    #Query elements:
+
     _dbpedia = SPARQLWrapper("http://dbpedia.org/sparql")
     _dbpedia.setReturnFormat(JSON)
 
@@ -113,6 +115,15 @@ class SourceData:
     def _vectorize_text(normalize_text):
         vector = []
         word_index = SourceData.get_word_index()
+        for word in normalize_text:
+            if word_index.get(word):
+                vector.append(word_index.get(word))
+        return vector
+
+    @staticmethod
+    def vectorize_text(word_index, text):
+        vector = []
+        normalize_text = SourceData._normalize_text(text)
         for word in normalize_text:
             if word_index.get(word):
                 vector.append(word_index.get(word))

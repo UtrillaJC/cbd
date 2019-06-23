@@ -49,24 +49,26 @@ def create_embedding_matrix(filepath, word_index, embedding_dim):
 train_data = keras.preprocessing.sequence.pad_sequences(train_data,
                                                         value=word_index["<PAD>"],
                                                         padding='post',
-                                                        maxlen=256)
+                                                        maxlen=512)
 
 test_data = keras.preprocessing.sequence.pad_sequences(test_data,
                                                        value=word_index["<PAD>"],
                                                        padding='post',
-                                                       maxlen=256)
+                                                       maxlen=512)
 
 vocab_size = len(word_index)+1
 
 # Here, we are declaring neural network structure.
 model = keras.Sequential(
     [
-        keras.layers.Embedding(input_dim=vocab_size, output_dim=50, weights=[create_embedding_matrix('glove.6B.50d.txt', word_index, 50)], input_length=256, trainable=True),
-        keras.layers.Conv1D(6, 50, activation='relu'),
+        keras.layers.Embedding(input_dim=vocab_size, output_dim=50, weights=[create_embedding_matrix('glove.6B.50d.txt', word_index, 50)], input_length=512, trainable=True),
+        keras.layers.Conv1D(50, 6, activation='relu'),
         keras.layers.GlobalAveragePooling1D(),
         keras.layers.Dense(6),
         keras.layers.Activation('relu'),
-        keras.layers.Dense(1), keras.layers.Activation('sigmoid')
+        #keras.layers.Dense(1), keras.layers.Activation('sigmoid')
+        keras.layers.Dense(3, activation=tf.nn.softmax)
+
     ]
 )
 """
@@ -81,7 +83,7 @@ model.add(keras.layers.Dense(1, activation=tf.nn.sigmoid))
 model.summary()
 
 model.compile(optimizer='adam',
-              loss='binary_crossentropy',
+              loss='sparse_categorical_crossentropy',
               metrics=['acc'])
 
 
@@ -94,7 +96,7 @@ partial_y_train = train_labels[len(train_labels)//2:]
 # Training our model with the data:
 history = model.fit(partial_x_train,
                     partial_y_train,
-                    epochs=200,
+                    epochs=20,
                     batch_size=200,
                     validation_data=(x_val, y_val),
                     verbose=1)

@@ -1,7 +1,8 @@
 from SPARQLWrapper import SPARQLWrapper, JSON
 import random
 import sys
-"""
+
+animalQuery = """
     PREFIX dbr: <http://dbpedia.org/resource/>
     PREFIX dbo: <http://dbpedia.org/ontology/>
     PREFIX dbc: <http://dbpedia.org/property/>
@@ -15,47 +16,61 @@ import sys
     LIMIT 15000
 """
 
+personQuery = """
+PREFIX dbr: <http://dbpedia.org/resource/>
+PREFIX dbo: <http://dbpedia.org/ontology/>
+PREFIX dbc: <http://dbpedia.org/property/>
+PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+SELECT DISTINCT ?subject ?object WHERE {
+   ?subject rdf:type dbo:Person.
+   ?subject dbo:abstract ?object.FILTER(lang(?object) = 'en')
 
-class SourceData:
+}
+LIMIT 15000
+"""
+
+workQuery = """
+PREFIX dbr: <http://dbpedia.org/resource/>
+PREFIX dbo: <http://dbpedia.org/ontology/>
+PREFIX dbc: <http://dbpedia.org/property/>
+PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+SELECT DISTINCT ?subject ?object WHERE {
+   ?subject rdf:type dbo:Work.
+   ?subject dbo:abstract ?object.FILTER(lang(?object) = 'en')
+
+}
+LIMIT 15000
+"""
+
+
+class Query:
     #Query elements:
     _dbpedia = SPARQLWrapper("http://dbpedia.org/sparql")
-
-    _personQuery = """
-    PREFIX dbr: <http://dbpedia.org/resource/>
-    PREFIX dbo: <http://dbpedia.org/ontology/>
-    PREFIX dbc: <http://dbpedia.org/property/>
-    PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
-    SELECT DISTINCT ?subject ?object WHERE {
-       ?subject rdf:type dbo:Person.
-       ?subject dbo:abstract ?object.FILTER(lang(?object) = 'en')
-
-    }
-    LIMIT 15000
-    """
-
-    _workQuery = """
-    PREFIX dbr: <http://dbpedia.org/resource/>
-    PREFIX dbo: <http://dbpedia.org/ontology/>
-    PREFIX dbc: <http://dbpedia.org/property/>
-    PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
-    SELECT DISTINCT ?subject ?object WHERE {
-       ?subject rdf:type dbo:Work.
-       ?subject dbo:abstract ?object.FILTER(lang(?object) = 'en')
-
-    }
-    LIMIT 15000
-    """
-    _dbpedia.setQuery(_workQuery)
     _dbpedia.setReturnFormat(JSON)
-    _resultsWorks = _dbpedia.query().convert()
-    _dbpedia.setQuery(_personQuery)
-    _resultsPersons = _dbpedia.query().convert()
 
-    _all_results = _resultsWorks["results"]["bindings"][:]
-    _all_results.extend(_resultsPersons["results"]["bindings"])
-    _data_len = len(_all_results)
+    @staticmethod
+    def get_results(*args):
+        results = ()
+        for query in args:
+            Query._dbpedia.setQuery(query)
+            result = Query._dbpedia.query().convert()
+            results = results + (result,)
+        return results
+
+    @staticmethod
+    def combine_results(*args):
+        combination = []
+        for result in args:
+            combination.extend(result["results"]["bindings"])
+        return combination
+
+
+class SourceData:
+
     #Processed data elements:
-
+    _resultsWorks, _resultsPersons, _resultsAnimals = Query.get_results(workQuery, personQuery, animalQuery)
+    _all_results = Query.combine_results(_resultsWorks, _resultsPersons, _resultsAnimals)
+    _data_len = len(_all_results)
     _word_index = None
     _data_examples = None
 
@@ -137,6 +152,11 @@ class SourceData:
             for result in SourceData._resultsPersons["results"]["bindings"]:
                 examples.append(SourceData._vectorize_text(SourceData._normalize_text(result["object"]["value"])))
                 labels.append(1)
+                progress(count, SourceData._data_len)
+                count = count + 1
+            for result in SourceData._resultsAnimals["results"]["bindings"]:
+                examples.append(SourceData._vectorize_text(SourceData._normalize_text(result["object"]["value"])))
+                labels.append(2)
                 progress(count, SourceData._data_len)
                 count = count + 1
             progress(count, SourceData._data_len)

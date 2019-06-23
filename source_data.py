@@ -1,7 +1,19 @@
 from SPARQLWrapper import SPARQLWrapper, JSON
 import random
 import sys
+"""
+    PREFIX dbr: <http://dbpedia.org/resource/>
+    PREFIX dbo: <http://dbpedia.org/ontology/>
+    PREFIX dbc: <http://dbpedia.org/property/>
+    PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+    PREFIX umb: <http://umbel.org/umbel/rc/>
+    SELECT DISTINCT ?subject ?object WHERE {
+       ?subject rdf:type umb:Animal.
+       ?subject dbo:abstract ?object.FILTER(lang(?object) = 'en')
 
+    }
+    LIMIT 15000
+"""
 
 
 class SourceData:
@@ -96,16 +108,16 @@ class SourceData:
         list1_copy = list(list1)
         list2_copy = list(list2)
         index = 0
-        index_uses = []
+        index_used = []
         for _ in list1:
             random_index = random.randint(0, len(list1) - 1)
-            if random_index not in index_uses:
+            if random_index not in index_used:
                 list1_copy[index] = list1[random_index]
                 list1_copy[random_index] = list1[index]
                 list2_copy[index] = list2[random_index]
                 list2_copy[random_index] = list2[index]
-                index_uses.append(index)
-                index_uses.append(random_index)
+                index_used.append(index)
+                index_used.append(random_index)
             index = index + 1
         return list1_copy, list2_copy
 
@@ -113,7 +125,7 @@ class SourceData:
     def data_examples():
 
         if SourceData._data_examples is None:
-            print("#Vectorizing data examples#")
+            print("# Vectorizing data examples #")
             examples = []
             labels = []
             count = 0
@@ -134,7 +146,7 @@ class SourceData:
             return SourceData._data_examples
 
 
-def progress(progress,total):
+def progress(progress, total):
     ratio = progress/total
     if (ratio*100) % 2 == 0:
         update_progress(ratio)

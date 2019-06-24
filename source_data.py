@@ -60,26 +60,31 @@ class Query:
             results = results + (result,)
         return results
 
+
+
+
+class SourceData:
+
+    # Processed data elements
+
+    _resultsWorks, _resultsPersons, _resultsAnimals = Query.get_results(workQuery, personQuery, animalQuery)
+    _all_results = None
+    _data_len = None
+    _word_index = None
+    _data_examples = None
+
+    def __init__(self):
+        SourceData._all_results = SourceData.combine_results(SourceData._resultsWorks, SourceData._resultsPersons, SourceData._resultsAnimals)
+        SourceData._data_len = len(SourceData._all_results)
+        SourceData._word_index = SourceData.get_word_index()
+        SourceData._data_examples = SourceData.data_examples()
+
     @staticmethod
     def combine_results(*args):
         combination = []
         for result in args:
             combination.extend(result["results"]["bindings"])
         return combination
-
-
-class SourceData:
-
-    #Processed data elements:
-    _resultsWorks, _resultsPersons, _resultsAnimals = Query.get_results(workQuery, personQuery, animalQuery)
-    _all_results = Query.combine_results(_resultsWorks, _resultsPersons, _resultsAnimals)
-    _data_len = len(_all_results)
-    _word_index = None
-    _data_examples = None
-
-    def __init__(self):
-        SourceData._word_index = SourceData.get_word_index()
-        SourceData._data_examples = SourceData.data_examples()
 
     @staticmethod
     def get_word_index():
@@ -158,21 +163,25 @@ class SourceData:
             examples = []
             labels = []
             count = 0
+            
             for result in SourceData._resultsWorks["results"]["bindings"]:
                 examples.append(SourceData._vectorize_text(SourceData._normalize_text(result["object"]["value"])))
                 labels.append(0)
                 progress(count, SourceData._data_len)
                 count = count + 1
+
             for result in SourceData._resultsPersons["results"]["bindings"]:
                 examples.append(SourceData._vectorize_text(SourceData._normalize_text(result["object"]["value"])))
                 labels.append(1)
                 progress(count, SourceData._data_len)
                 count = count + 1
+
             for result in SourceData._resultsAnimals["results"]["bindings"]:
                 examples.append(SourceData._vectorize_text(SourceData._normalize_text(result["object"]["value"])))
                 labels.append(2)
                 progress(count, SourceData._data_len)
                 count = count + 1
+
             progress(count, SourceData._data_len)
             sys.stdout.write("]\n")
             return SourceData._randomize_lists_pair(examples, labels)

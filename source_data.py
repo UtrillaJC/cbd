@@ -4,18 +4,17 @@ import sys
 
 # Our SPARQL queries:
 
-animalQuery = """
-    PREFIX dbr: <http://dbpedia.org/resource/>
-    PREFIX dbo: <http://dbpedia.org/ontology/>
-    PREFIX dbc: <http://dbpedia.org/property/>
-    PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
-    PREFIX umb: <http://umbel.org/umbel/rc/>
-    SELECT DISTINCT ?subject ?object WHERE {
-       ?subject rdf:type umb:Animal.
-       ?subject dbo:abstract ?object.FILTER(lang(?object) = 'en')
+workQuery = """
+PREFIX dbr: <http://dbpedia.org/resource/>
+PREFIX dbo: <http://dbpedia.org/ontology/>
+PREFIX dbc: <http://dbpedia.org/property/>
+PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+SELECT DISTINCT ?subject ?object WHERE {
+   ?subject rdf:type dbo:Work.
+   ?subject dbo:abstract ?object.FILTER(lang(?object) = 'en')
 
-    }
-    LIMIT 15000
+}
+LIMIT 15000
 """
 
 personQuery = """
@@ -31,18 +30,20 @@ SELECT DISTINCT ?subject ?object WHERE {
 LIMIT 15000
 """
 
-workQuery = """
-PREFIX dbr: <http://dbpedia.org/resource/>
-PREFIX dbo: <http://dbpedia.org/ontology/>
-PREFIX dbc: <http://dbpedia.org/property/>
-PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
-SELECT DISTINCT ?subject ?object WHERE {
-   ?subject rdf:type dbo:Work.
-   ?subject dbo:abstract ?object.FILTER(lang(?object) = 'en')
+animalQuery = """
+    PREFIX dbr: <http://dbpedia.org/resource/>
+    PREFIX dbo: <http://dbpedia.org/ontology/>
+    PREFIX dbc: <http://dbpedia.org/property/>
+    PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+    PREFIX umb: <http://umbel.org/umbel/rc/>
+    SELECT DISTINCT ?subject ?object WHERE {
+       ?subject rdf:type umb:Animal.
+       ?subject dbo:abstract ?object.FILTER(lang(?object) = 'en')
 
-}
-LIMIT 15000
+    }
+    LIMIT 15000
 """
+
 
 
 class Query:
@@ -127,6 +128,8 @@ class SourceData:
         for word in normalize_text:
             if word_index.get(word):
                 vector.append(word_index.get(word))
+            else:
+                vector.append(1)
         return vector
 
     @staticmethod

@@ -21,19 +21,15 @@ test_labels = examples[1][n_examples//2:]
 word_index = source.get_word_index()
 
 # The first indices are reserved
-word_index = {k: (v + 3) for k, v in word_index.items()}
+word_index = {k: (v + 2) for k, v in word_index.items()}
 word_index["<PAD>"] = 0
-word_index["<START>"] = 1
-word_index["<UNK>"] = 2  # unknown
-word_index["<UNUSED>"] = 3
-
-reverse_word_index = dict([(value, key) for (key, value) in word_index.items()])
+word_index["<UNK>"] = 1  # unknown
 
 
 # This vectorize every word.
 def create_embedding_matrix(filepath, word_index, embedding_dim):
-    vocab_size = len(word_index) + 1
-    embedding_matrix = np.zeros((vocab_size, embedding_dim))
+    vocab_len = len(word_index) + 1
+    embedding_matrix = np.zeros((vocab_len, embedding_dim))
 
     with open(filepath) as f:
         for line in f:
@@ -46,7 +42,7 @@ def create_embedding_matrix(filepath, word_index, embedding_dim):
     return embedding_matrix
 
 
-# We need every text has the same lenght, that is "maxlen"
+# We need every text has the same length, that is "maxlen"
 train_data = keras.preprocessing.sequence.pad_sequences(train_data,
                                                         value=word_index["<PAD>"],
                                                         padding='post',

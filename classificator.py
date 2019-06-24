@@ -19,6 +19,7 @@ text = """
 """
 text2 = """
 """
+text3 = """ """
 vectorized_text = SourceData.vectorize_text(word_index, text2)
 data_to_evaluate = keras.preprocessing.sequence.pad_sequences([vectorized_text,],
                                                         value=word_index["<PAD>"],

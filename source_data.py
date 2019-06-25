@@ -30,21 +30,6 @@ SELECT DISTINCT ?subject ?object WHERE {
 LIMIT 15000
 """
 
-animalQuery = """
-    PREFIX dbr: <http://dbpedia.org/resource/>
-    PREFIX dbo: <http://dbpedia.org/ontology/>
-    PREFIX dbc: <http://dbpedia.org/property/>
-    PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
-    PREFIX umb: <http://umbel.org/umbel/rc/>
-    SELECT DISTINCT ?subject ?object WHERE {
-       ?subject rdf:type umb:Animal.
-       ?subject dbo:abstract ?object.FILTER(lang(?object) = 'en')
-
-    }
-    LIMIT 15000
-"""
-
-
 
 class Query:
 
@@ -67,14 +52,14 @@ class SourceData:
 
     # Processed data elements
 
-    _resultsWorks, _resultsPersons, _resultsAnimals = Query.get_results(workQuery, personQuery, animalQuery)
+    _resultsWorks, _resultsPersons = Query.get_results(workQuery, personQuery)
     _all_results = None
     _data_len = None
     _word_index = None
     _data_examples = None
 
     def __init__(self):
-        SourceData._all_results = SourceData.combine_results(SourceData._resultsWorks, SourceData._resultsPersons, SourceData._resultsAnimals)
+        SourceData._all_results = SourceData.combine_results(SourceData._resultsWorks, SourceData._resultsPersons)
         SourceData._data_len = len(SourceData._all_results)
         SourceData._word_index = SourceData.get_word_index()
         SourceData._data_examples = SourceData.data_examples()
@@ -163,7 +148,7 @@ class SourceData:
             examples = []
             labels = []
             count = 0
-            
+
             for result in SourceData._resultsWorks["results"]["bindings"]:
                 examples.append(SourceData._vectorize_text(SourceData._normalize_text(result["object"]["value"])))
                 labels.append(0)
@@ -173,12 +158,6 @@ class SourceData:
             for result in SourceData._resultsPersons["results"]["bindings"]:
                 examples.append(SourceData._vectorize_text(SourceData._normalize_text(result["object"]["value"])))
                 labels.append(1)
-                progress(count, SourceData._data_len)
-                count = count + 1
-
-            for result in SourceData._resultsAnimals["results"]["bindings"]:
-                examples.append(SourceData._vectorize_text(SourceData._normalize_text(result["object"]["value"])))
-                labels.append(2)
                 progress(count, SourceData._data_len)
                 count = count + 1
 

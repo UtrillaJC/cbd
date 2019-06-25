@@ -41,46 +41,38 @@ def create_embedding_matrix(filepath, word_index, embedding_dim):
 
     return embedding_matrix
 
-
+text_len = 256
 # We need every text has the same length, that is "maxlen"
 train_data = keras.preprocessing.sequence.pad_sequences(train_data,
                                                         value=word_index["<PAD>"],
                                                         padding='post',
-                                                        maxlen=256)
+                                                        maxlen=text_len)
 
 test_data = keras.preprocessing.sequence.pad_sequences(test_data,
                                                        value=word_index["<PAD>"],
                                                        padding='post',
-                                                       maxlen=256)
+                                                       maxlen=text_len)
 
 vocab_size = len(word_index)+1
 
 # Here, we are declaring neural network structure.
 model = keras.Sequential(
     [
-        keras.layers.Embedding(input_dim=vocab_size, output_dim=50, weights=[create_embedding_matrix('glove.6B.50d.txt', word_index, 50)], input_length=256, trainable=True),
+        keras.layers.Embedding(input_dim=vocab_size, output_dim=50, weights=[create_embedding_matrix('glove.6B.50d.txt', word_index, 50)], input_length=text_len, trainable=True),
         keras.layers.Conv1D(50, 6, activation='relu'),
         keras.layers.GlobalAveragePooling1D(),
         keras.layers.Dense(6),
         keras.layers.Activation('relu'),
-        #keras.layers.Dense(1), keras.layers.Activation('sigmoid')
-        keras.layers.Dense(3, activation=tf.nn.softmax)
+        keras.layers.Dense(1), keras.layers.Activation('sigmoid')
+        #keras.layers.Dense(3, activation=tf.nn.softmax)
 
     ]
 )
-"""
 
-model.add(keras.layers.Embedding(vocab_size, 16))
-model.add(keras.layers.Flatten(input_shape=(256, 1)))
-#model.add(keras.layers.GlobalAveragePooling1D())
-model.add(keras.layers.Dense(16, activation=tf.nn.relu))
-model.add(keras.layers.Dense(1, activation=tf.nn.sigmoid))
-
-"""
 model.summary()
 
 model.compile(optimizer='adam',
-              loss='sparse_categorical_crossentropy',
+              loss='binary_crossentropy',
               metrics=['acc'])
 
 
@@ -94,7 +86,7 @@ partial_y_train = train_labels[len(train_labels)//2:]
 history = model.fit(partial_x_train,
                     partial_y_train,
                     epochs=125,
-                    batch_size=200,
+                    batch_size=500,
                     validation_data=(x_val, y_val),
                     verbose=1)
 

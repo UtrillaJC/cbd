@@ -46,8 +46,6 @@ class Query:
         return results
 
 
-
-
 class SourceData:
 
     # Processed data elements
